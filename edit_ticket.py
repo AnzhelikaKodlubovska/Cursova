@@ -7,7 +7,7 @@ from PyQt6.QtCore import Qt, QDate, QRegularExpression
 from PyQt6.QtGui import QFont, QRegularExpressionValidator, QPixmap
 
 
-class EditViewer(QWidget):
+class EditTicket(QWidget):
 
     def __init__(self):
         super().__init__()
@@ -78,6 +78,6 @@ class EditViewer(QWidget):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    window = EditViewer()
+    window = EditTicket()
     window.show()
     sys.exit(app.exec())

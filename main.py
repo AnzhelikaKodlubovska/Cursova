@@ -2,146 +2,179 @@ import sys
 from PyQt6.QtWidgets import (QApplication, QWidget, QLabel, QPushButton, QTabWidget,
                              QHBoxLayout, QVBoxLayout, QListWidget, QListWidgetItem, QInputDialog)
 from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QPixmap
+
+from edit_manager import EditManager
+from edit_ticket import EditTicket
+from edit_viewer import EditViewer
 
 
-class CinemaApp(QWidget):
+class UserTypeWindow(QWidget):
     def __init__(self):
         super().__init__()
         self.initializeUI()
 
     def initializeUI(self):
-        self.setMinimumSize(500, 400)
-        self.setWindowTitle("Облік квитків у кінотеатрі")
+        self.setWindowTitle("Вибір користувача")
+        self.setMinimumSize(300, 200)
+
+        label = QLabel("Ви глядач чи менеджер?", self)
+        label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        viewer_button = QPushButton("Глядач")
+        manager_button = QPushButton("Менеджер")
+
+        viewer_button.clicked.connect(self.openViewerWindow)
+        manager_button.clicked.connect(self.openManagerWindow)
+
+        layout = QVBoxLayout()
+        layout.addWidget(label)
+        layout.addWidget(viewer_button)
+        layout.addWidget(manager_button)
+
+        self.setLayout(layout)
+
+    def openViewerWindow(self):
+        self.main_window = MainWindow(role='viewer')
+        self.main_window.show()
+        self.close()
+
+    def openManagerWindow(self):
+        self.main_window = MainWindow(role='manager')
+        self.main_window.show()
+        self.close()
+
+
+class MainWindow(QWidget):
+    def __init__(self, role):
+        super().__init__()
+        self.role = role
+        self.initializeUI()
+
+    def initializeUI(self):
+        self.setWindowTitle("Кінотеатр - Головне вікно")
+        self.setMinimumSize(600, 400)
         self.setUpMainWindow()
-        self.show()
 
     def setUpMainWindow(self):
-        tab_bar = QTabWidget(self)
+        self.tab_bar = QTabWidget(self)
 
-        self.audience_tab = QWidget()
-        self.tickets_tab = QWidget()
-        self.sessions_tab = QWidget()
-        self.movies_tab = QWidget()
-        self.managers_tab = QWidget()
+        if self.role == 'viewer':
+            self.tickets_tab = QWidget()
+            self.sessions_tab = QWidget()
+            self.movies_tab = QWidget()
 
-        tab_bar.addTab(self.audience_tab, "Глядачі")
-        tab_bar.addTab(self.tickets_tab, "Квитки")
-        tab_bar.addTab(self.sessions_tab, "Сеанси")
-        tab_bar.addTab(self.movies_tab, "Фільми")
-        tab_bar.addTab(self.managers_tab, "Менеджери")
+            self.tab_bar.addTab(self.tickets_tab, "Квитки")
+            self.tab_bar.addTab(self.sessions_tab, "Сеанси")
+            self.tab_bar.addTab(self.movies_tab, "Фільми")
 
-        self.audienceTab()
-        self.ticketsTab()
-        self.sessionsTab()
-        self.moviesTab()
-        self.managersTab()
+            self.ticketsTab()
+            self.sessionsTab()
+            self.moviesTab()
 
-        main_h_box = QHBoxLayout()
-        main_h_box.addWidget(tab_bar)
-        self.setLayout(main_h_box)
+        elif self.role == 'manager':
+            self.viewers_tab = QWidget()
+            self.sessions_tab = QWidget()
+            self.movies_tab = QWidget()
 
-    def audienceTab(self):
-        self.audience_list = ['Іван', 'Олена', 'Дмитро']
-        self.audience_list_widget = QListWidget()
-        for audience in self.audience_list:
-            self.audience_list_widget.addItem(QListWidgetItem(audience))
+            self.tab_bar.addTab(self.viewers_tab, "Глядачі")
+            self.tab_bar.addTab(self.sessions_tab, "Сеанси")
+            self.tab_bar.addTab(self.movies_tab, "Фільми")
 
-        button_add_audience = QPushButton('Додати глядача')
-        button_add_audience.clicked.connect(self.addAudienceClicked)
+            self.viewersTab()
+            self.sessionsTab()
+            self.moviesTab()
 
-        tab_v_box = QVBoxLayout()
-        tab_v_box.addWidget(self.audience_list_widget)
-        tab_v_box.addWidget(button_add_audience)
-        self.audience_tab.setLayout(tab_v_box)
-
-    def addAudienceClicked(self):
-        name, ok = QInputDialog.getText(self, 'Новий глядач', "Введіть ім'я глядача:")
-        if ok and name:
-            self.audience_list.append(name)
-            self.audience_list_widget.addItem(QListWidgetItem(name))
+        main_layout = QHBoxLayout()
+        main_layout.addWidget(self.tab_bar)
+        self.setLayout(main_layout)
 
     def ticketsTab(self):
-        self.tickets_list = ['Квиток #001', 'Квиток #002', 'Квиток #003']
-        self.tickets_list_widget = QListWidget()
-        for ticket in self.tickets_list:
-            self.tickets_list_widget.addItem(QListWidgetItem(ticket))
+        layout = QVBoxLayout()
 
-        button_add_ticket = QPushButton('Додати квиток')
-        button_add_ticket.clicked.connect(self.addTicketClicked)
+        cinema_image = QLabel()
+        pixmap = QPixmap("images/cinema1.png")
+        cinema_image.setPixmap(pixmap.scaledToWidth(500))
+        cinema_image.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        tab_v_box = QVBoxLayout()
-        tab_v_box.addWidget(self.tickets_list_widget)
-        tab_v_box.addWidget(button_add_ticket)
-        self.tickets_tab.setLayout(tab_v_box)
+        button_buy_ticket = QPushButton("Купити квиток")
+        button_buy_ticket.clicked.connect(self.openEditTicketWindow)
 
-    def addTicketClicked(self):
-        ticket, ok = QInputDialog.getText(self, 'Новий квиток', 'Введіть номер квитка:')
-        if ok and ticket:
-            self.tickets_list.append(ticket)
-            self.tickets_list_widget.addItem(QListWidgetItem(ticket))
+        layout.addWidget(cinema_image)
+        layout.addWidget(button_buy_ticket)
+        self.tickets_tab.setLayout(layout)
+
+    def openEditTicketWindow(self):
+        self.edit_ticket_window = EditTicket()
+        self.edit_ticket_window.show()
 
     def sessionsTab(self):
-        self.sessions_list = ['Сеанс 1: 18:00', 'Сеанс 2: 20:30']
-        self.sessions_list_widget = QListWidget()
-        for session in self.sessions_list:
-            self.sessions_list_widget.addItem(QListWidgetItem(session))
+        self.sessions_list = QListWidget()
+        self.sessions_list.addItems(['Сеанс 1: 18:00', 'Сеанс 2: 20:30'])
 
-        button_add_session = QPushButton('Додати сеанс')
-        button_add_session.clicked.connect(self.addSessionClicked)
+        if self.role == 'manager':
+            button_add_session = QPushButton('Додати сеанс')
+            button_add_session.clicked.connect(self.addSession)
 
-        tab_v_box = QVBoxLayout()
-        tab_v_box.addWidget(self.sessions_list_widget)
-        tab_v_box.addWidget(button_add_session)
-        self.sessions_tab.setLayout(tab_v_box)
-
-    def addSessionClicked(self):
-        session, ok = QInputDialog.getText(self, 'Новий сеанс', 'Введіть час та назву сеансу:')
-        if ok and session:
-            self.sessions_list.append(session)
-            self.sessions_list_widget.addItem(QListWidgetItem(session))
+            layout = QVBoxLayout()
+            layout.addWidget(self.sessions_list)
+            layout.addWidget(button_add_session)
+            self.sessions_tab.setLayout(layout)
+        else:
+            layout = QVBoxLayout()
+            layout.addWidget(self.sessions_list)
+            self.sessions_tab.setLayout(layout)
 
     def moviesTab(self):
-        self.movies_list = ['Фільм "Аватар"', 'Фільм "Титанік"']
-        self.movies_list_widget = QListWidget()
-        for movie in self.movies_list:
-            self.movies_list_widget.addItem(QListWidgetItem(movie))
+        self.movies_list = QListWidget()
+        self.movies_list.addItems(['Аватар', 'Титанік'])
 
-        button_add_movie = QPushButton('Додати фільм')
-        button_add_movie.clicked.connect(self.addMovieClicked)
+        if self.role == 'manager':
+            button_add_movie = QPushButton('Додати фільм')
+            button_add_movie.clicked.connect(self.addMovie)
 
-        tab_v_box = QVBoxLayout()
-        tab_v_box.addWidget(self.movies_list_widget)
-        tab_v_box.addWidget(button_add_movie)
-        self.movies_tab.setLayout(tab_v_box)
+            layout = QVBoxLayout()
+            layout.addWidget(self.movies_list)
+            layout.addWidget(button_add_movie)
+            self.movies_tab.setLayout(layout)
+        else:
+            layout = QVBoxLayout()
+            layout.addWidget(self.movies_list)
+            self.movies_tab.setLayout(layout)
 
-    def addMovieClicked(self):
-        movie, ok = QInputDialog.getText(self, 'Новий фільм', 'Введіть назву фільму:')
-        if ok and movie:
-            self.movies_list.append(movie)
-            self.movies_list_widget.addItem(QListWidgetItem(movie))
+    def viewersTab(self):
+        self.viewers_list = QListWidget()
+        self.viewers_list.addItems(['Іван', 'Олена'])
 
-    def managersTab(self):
-        self.managers_list = ['Менеджер Анна', 'Менеджер Богдан']
-        self.managers_list_widget = QListWidget()
-        for manager in self.managers_list:
-            self.managers_list_widget.addItem(QListWidgetItem(manager))
+        button_add_viewer = QPushButton('Додати глядача')
+        button_add_viewer.clicked.connect(self.openEditViewerWindow)
 
-        button_add_manager = QPushButton('Додати менеджера')
-        button_add_manager.clicked.connect(self.addManagerClicked)
+        layout = QVBoxLayout()
+        layout.addWidget(self.viewers_list)
+        layout.addWidget(button_add_viewer)
+        self.viewers_tab.setLayout(layout)
 
-        tab_v_box = QVBoxLayout()
-        tab_v_box.addWidget(self.managers_list_widget)
-        tab_v_box.addWidget(button_add_manager)
-        self.managers_tab.setLayout(tab_v_box)
+    def openEditViewerWindow(self):
+        self.edit_viewer_window = EditViewer()
+        self.edit_viewer_window.show()
+        self.edit_viewer_window.destroyed.connect(self.refreshViewersList)
 
-    def addManagerClicked(self):
-        manager, ok = QInputDialog.getText(self, 'Новий менеджер', 'Введіть ім’я менеджера:')
-        if ok and manager:
-            self.managers_list.append(manager)
-            self.managers_list_widget.addItem(QListWidgetItem(manager))
+    def refreshViewersList(self):
+        self.viewers_list.addItem(QListWidgetItem("Новий глядач"))
+
+    def addSession(self):
+        text, ok = QInputDialog.getText(self, 'Новий сеанс', 'Введіть опис сеансу:')
+        if ok and text:
+            self.sessions_list.addItem(QListWidgetItem(text))
+
+    def addMovie(self):
+        text, ok = QInputDialog.getText(self, 'Новий фільм', 'Введіть назву фільму:')
+        if ok and text:
+            self.movies_list.addItem(QListWidgetItem(text))
 
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    window = CinemaApp()
+    window = UserTypeWindow()
+    window.show()
     sys.exit(app.exec())

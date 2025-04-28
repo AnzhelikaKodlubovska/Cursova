@@ -7,7 +7,7 @@ from PyQt6.QtCore import Qt, QDate, QRegularExpression
 from PyQt6.QtGui import QFont, QRegularExpressionValidator
 
 
-class EditClient(QWidget):
+class EditManager(QWidget):
 
     def __init__(self):
         super().__init__()
@@ -97,6 +97,6 @@ class EditClient(QWidget):
             
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    window = EditClient()
+    window = EditManager ()
     window.show()
     sys.exit(app.exec())
