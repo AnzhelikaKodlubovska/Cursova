@@ -1,0 +1,33 @@
+QWidget {
+  background-color: aquamarine;
+}
+
+QLineEdit {
+  background-color: #ffffff;
+  color: #4b0082;
+  border: 2px solid #333;
+  border-radius: 5px;
+  padding: 5px;
+}
+
+QComboBox {
+  background-color: #ffffff;
+  color: #4b0082;
+}
+
+QDateEdit {
+  background-color: #ffffff;
+  color: #4b0082;
+}
+
+QPushButton {
+  color: #ffffff;
+  background-color: #0000ff;
+  border-radius: 5px;
+  padding: 5px 10px;
+}
+
+QTextEdit {
+  background-color: #ffffff;
+  color: #4b0082;
+}

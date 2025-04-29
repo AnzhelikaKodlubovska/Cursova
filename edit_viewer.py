@@ -33,15 +33,6 @@ class EditViewer(QWidget):
         name_h_box = QHBoxLayout()
         name_h_box.addWidget(self.first_name_edit)
         name_h_box.addWidget(self.last_name_edit)
-        
-        self.gender_combo = QComboBox()
-        self.gender_combo.addItems(["Чоловік", "Жінка"])
-
-        self.birthdate_edit = QDateEdit()
-        self.birthdate_edit.setDisplayFormat("yyyy/MM/dd")
-        self.birthdate_edit.setMaximumDate(QDate.currentDate())
-        self.birthdate_edit.setCalendarPopup(True)
-        self.birthdate_edit.setDate(QDate.currentDate())
 
         self.phone_edit = QLineEdit()
         self.phone_edit.setInputMask("(999) 999-9999;_")
