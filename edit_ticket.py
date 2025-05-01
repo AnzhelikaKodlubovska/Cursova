@@ -69,6 +69,8 @@ class EditTicket(QWidget):
 
         try:
             row, seat = map(str.strip, parts)
+            self.row = row  
+            self.seat = seat  
             QMessageBox.information(self, "Обрано місце",
                                         f"Ви обрали ряд: {row}, місце: {seat}")
             self.close()

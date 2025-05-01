@@ -27,8 +27,6 @@ def save_data(file, data):
 class UserTypeWindow(QWidget):
     def __init__(self):
         super().__init__()
-        with open("styles.css", "r") as styleFile:
-            self.setStyleSheet(styleFile.read())
         self.initializeUI()
 
     def initializeUI(self):
@@ -90,13 +88,14 @@ class UserTypeWindow(QWidget):
 class MainWindow(QWidget):
     def __init__(self, role, viewer_name=""):
         super().__init__()
-        with open("styles.css", "r") as styleFile:
-            self.setStyleSheet(styleFile.read())
         self.role = role
         self.viewer_name = viewer_name
         self.ticket_data = load_data(DATA_FILE)
         self.movies = load_data(MOVIES_FILE)
         self.sessions = load_data(SESSIONS_FILE)
+
+        
+
         self.initializeUI()
 
     def initializeUI(self):
@@ -162,14 +161,16 @@ class MainWindow(QWidget):
     def saveTicketInfo(self):
         row = getattr(self.edit_ticket_window, 'row', '-')
         seat = getattr(self.edit_ticket_window, 'seat', '-')
-        self.ticket_data.append({
+        ticket_info = {
             'name': self.viewer_name,
             'row': row,
             'seat': seat,
             'movie': self.movie_box.currentText(),
             'session': self.session_box.currentText()
-        })
+        }
+        self.ticket_data.append(ticket_info)
         save_data(DATA_FILE, self.ticket_data)
+        self.updateViewersTab() # Оновлюємо вкладку "Глядачі"
 
     def sessionsTab(self):
         self.sessions_list = QListWidget()
@@ -203,9 +204,7 @@ class MainWindow(QWidget):
 
     def viewersTab(self):
         self.viewers_list = QListWidget()
-        for ticket in self.ticket_data:
-            text = f"{ticket['name']} - {ticket['row']} ряд, {ticket['seat']} місце \"{ticket['movie']}\" - {ticket['session']}"
-            self.viewers_list.addItem(QListWidgetItem(text))
+        self.updateViewersTab()
 
         button_add_viewer = QPushButton('Додати глядача')
         button_add_viewer.clicked.connect(self.openEditViewerWindow)
@@ -218,6 +217,12 @@ class MainWindow(QWidget):
         layout.addWidget(button_delete_viewer)
         self.viewers_tab.setLayout(layout)
 
+    def updateViewersTab(self):
+        self.viewers_list.clear()
+        for ticket in self.ticket_data:
+            text = f"{ticket['name']} - {ticket['row']} ряд, {ticket['seat']} місце \"{ticket['movie']}\" - {ticket['session']}"
+            self.viewers_list.addItem(QListWidgetItem(text))
+
     def deleteSelectedViewer(self):
         item = self.viewers_list.currentItem()
         if item:
@@ -228,24 +233,15 @@ class MainWindow(QWidget):
                 save_data(DATA_FILE, self.ticket_data)
 
     def openEditViewerWindow(self):
-        self.edit_viewer_window = EditViewer()
+        self.edit_viewer_window = EditViewer(movies=self.movies, sessions=self.sessions)
+        self.edit_viewer_window.viewer_added.connect(self.addViewerToTable)
         self.edit_viewer_window.show()
-        self.edit_viewer_window.destroyed.connect(self.refreshViewersListFromForm)
 
-    def refreshViewersListFromForm(self):
-        if hasattr(self.edit_viewer_window, 'first_name_edit') and hasattr(self.edit_viewer_window, 'last_name_edit'):
-            first_name = self.edit_viewer_window.first_name_edit.text().strip()
-            last_name = self.edit_viewer_window.last_name_edit.text().strip()
-            full_name = f"{first_name} {last_name}"
-            if full_name:
-                new_data = {
-                    'name': full_name,
-                    'row': '-', 'seat': '-', 'movie': '-', 'session': '-'
-                }
-                self.ticket_data.append(new_data)
-                save_data(DATA_FILE, self.ticket_data)
-                self.viewers_list.addItem(QListWidgetItem(
-                    f"{new_data['name']} - {new_data['row']} ряд, {new_data['seat']} місце \"{new_data['movie']}\" - {new_data['session']}"))
+    def addViewerToTable(self, viewer_data):
+        self.ticket_data.append(viewer_data)
+        save_data(DATA_FILE, self.ticket_data)
+        self.updateViewersTab()
+
 
     def addSession(self):
         text, ok = QInputDialog.getText(self, 'Новий сеанс', 'Введіть опис сеансу:')
