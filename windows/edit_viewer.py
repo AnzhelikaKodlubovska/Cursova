@@ -20,13 +20,15 @@ class EditViewer(QWidget):
         self.movie_combo = None
         self.session_combo = None
         self.feedback_label = None
+        with open("styles.css", "r") as styleFile:
+            self.setStyleSheet(styleFile.read())
         self.initializeUI()
 
     def initializeUI(self):
         self.setFixedSize(400, 250)
         self.setWindowTitle("Додати глядача")
         self.setUpMainWindow()
-
+    
     def setUpMainWindow(self):
         header_label = QLabel("Додавання глядача")
         header_label.setFont(QFont("Arial", 18))

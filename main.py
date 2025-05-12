@@ -1,4 +1,4 @@
-import sys
+import sys 
 import pickle
 import os
 from PyQt6.QtWidgets import (QApplication, QWidget, QLabel, QPushButton, QTabWidget,
@@ -6,12 +6,15 @@ from PyQt6.QtWidgets import (QApplication, QWidget, QLabel, QPushButton, QTabWid
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QPixmap
 
-from edit_ticket import EditTicket
-from edit_viewer import EditViewer
+from windows.edit_ticket import EditTicket
+from windows.edit_viewer import EditViewer
+from windows.edit_manager import EditManager
+from models.models import Ticket, Viewer, Movie, Session, Manager
 
 DATA_FILE = "data.pkl"
 MOVIES_FILE = "movies.pkl"
 SESSIONS_FILE = "sessions.pkl"
+MANAGER_FILE = "manager.pkl"
 
 def load_data(file):
     if os.path.exists(file):
@@ -23,10 +26,11 @@ def save_data(file, data):
     with open(file, "wb") as f:
         pickle.dump(data, f)
 
-
 class UserTypeWindow(QWidget):
     def __init__(self):
         super().__init__()
+        with open("styles.css", "r") as styleFile:
+            self.setStyleSheet(styleFile.read())
         self.initializeUI()
 
     def initializeUI(self):
@@ -74,7 +78,13 @@ class UserTypeWindow(QWidget):
             self.close()
 
     def openManagerWindow(self):
-        password, ok = QInputDialog.getText(self, 'Пароль менеджера', 'Введіть пароль:')
+        password, ok = QInputDialog.getText(
+            self, 
+            'Пароль менеджера', 
+            'Введіть пароль:',
+            QLineEdit.EchoMode.Password  
+        )
+
         if ok and password == 'admin123':
             self.main_window = MainWindow(role='manager')
             self.main_window.show()
@@ -90,11 +100,12 @@ class MainWindow(QWidget):
         super().__init__()
         self.role = role
         self.viewer_name = viewer_name
-        self.ticket_data = load_data(DATA_FILE)
-        self.movies = load_data(MOVIES_FILE)
-        self.sessions = load_data(SESSIONS_FILE)
-
-        
+        self.ticket_data: list[Viewer] = load_data(DATA_FILE)
+        self.movies: list[Movie] = load_data(MOVIES_FILE)
+        self.sessions: list[Session] = load_data(SESSIONS_FILE)
+        self.managers: list[Manager] = load_data(MANAGER_FILE)
+        with open("styles.css", "r") as styleFile:
+            self.setStyleSheet(styleFile.read())
 
         self.initializeUI()
 
@@ -115,14 +126,17 @@ class MainWindow(QWidget):
             self.viewers_tab = QWidget()
             self.sessions_tab = QWidget()
             self.movies_tab = QWidget()
+            self.managers_tab = QWidget()
 
             self.tab_bar.addTab(self.viewers_tab, "Глядачі")
             self.tab_bar.addTab(self.sessions_tab, "Сеанси")
             self.tab_bar.addTab(self.movies_tab, "Фільми")
+            self.tab_bar.addTab(self.managers_tab, "Менеджери")
 
             self.viewersTab()
             self.sessionsTab()
             self.moviesTab()
+            self.managersTab()
 
         main_layout = QHBoxLayout()
         main_layout.addWidget(self.tab_bar)
@@ -137,10 +151,10 @@ class MainWindow(QWidget):
         cinema_image.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.movie_box = QComboBox()
-        self.movie_box.addItems(self.movies if self.movies else ['Титанік', 'Аватар'])
+        self.movie_box.addItems([str(movie) for movie in self.movies] if self.movies else ['Титанік', 'Аватар'])
 
         self.session_box = QComboBox()
-        self.session_box.addItems(self.sessions if self.sessions else ['Сеанс 1', 'Сеанс 2'])
+        self.session_box.addItems([str(session) for session in self.sessions] if self.sessions else ['Сеанс 1', 'Сеанс 2'])
 
         button_buy_ticket = QPushButton("Купити квиток")
         button_buy_ticket.clicked.connect(self.openEditTicketWindow)
@@ -161,20 +175,20 @@ class MainWindow(QWidget):
     def saveTicketInfo(self):
         row = getattr(self.edit_ticket_window, 'row', '-')
         seat = getattr(self.edit_ticket_window, 'seat', '-')
-        ticket_info = {
-            'name': self.viewer_name,
-            'row': row,
-            'seat': seat,
-            'movie': self.movie_box.currentText(),
-            'session': self.session_box.currentText()
-        }
-        self.ticket_data.append(ticket_info)
+        ticket = Viewer(
+            name=self.viewer_name,
+            row=row,
+            seat=seat,
+            movie=self.movie_box.currentText(),
+            session=self.session_box.currentText()
+        )
+        self.ticket_data.append(ticket)
         save_data(DATA_FILE, self.ticket_data)
-        self.updateViewersTab() # Оновлюємо вкладку "Глядачі"
+        self.updateViewersTab()
 
     def sessionsTab(self):
         self.sessions_list = QListWidget()
-        self.sessions_list.addItems(self.sessions)
+        self.sessions_list.addItems([str(session) for session in self.sessions])
 
         button_add_session = QPushButton('Додати сеанс')
         button_add_session.clicked.connect(self.addSession)
@@ -189,7 +203,7 @@ class MainWindow(QWidget):
 
     def moviesTab(self):
         self.movies_list = QListWidget()
-        self.movies_list.addItems(self.movies)
+        self.movies_list.addItems([str(movie) for movie in self.movies])
 
         button_add_movie = QPushButton('Додати фільм')
         button_add_movie.clicked.connect(self.addMovie)
@@ -220,8 +234,7 @@ class MainWindow(QWidget):
     def updateViewersTab(self):
         self.viewers_list.clear()
         for ticket in self.ticket_data:
-            text = f"{ticket['name']} - {ticket['row']} ряд, {ticket['seat']} місце \"{ticket['movie']}\" - {ticket['session']}"
-            self.viewers_list.addItem(QListWidgetItem(text))
+            self.viewers_list.addItem(QListWidgetItem(str(ticket)))
 
     def deleteSelectedViewer(self):
         item = self.viewers_list.currentItem()
@@ -233,28 +246,30 @@ class MainWindow(QWidget):
                 save_data(DATA_FILE, self.ticket_data)
 
     def openEditViewerWindow(self):
-        self.edit_viewer_window = EditViewer(movies=self.movies, sessions=self.sessions)
+        self.edit_viewer_window = EditViewer(movies=[str(m) for m in self.movies], sessions=[str(s) for s in self.sessions])
         self.edit_viewer_window.viewer_added.connect(self.addViewerToTable)
         self.edit_viewer_window.show()
 
     def addViewerToTable(self, viewer_data):
-        self.ticket_data.append(viewer_data)
+        viewer = Viewer(**viewer_data)
+        self.ticket_data.append(viewer)
         save_data(DATA_FILE, self.ticket_data)
         self.updateViewersTab()
-
 
     def addSession(self):
         text, ok = QInputDialog.getText(self, 'Новий сеанс', 'Введіть опис сеансу:')
         if ok and text:
-            self.sessions.append(text)
-            self.sessions_list.addItem(QListWidgetItem(text))
+            session = Session(description=text)
+            self.sessions.append(session)
+            self.sessions_list.addItem(QListWidgetItem(str(session)))
             save_data(SESSIONS_FILE, self.sessions)
 
     def addMovie(self):
         text, ok = QInputDialog.getText(self, 'Новий фільм', 'Введіть назву фільму:')
         if ok and text:
-            self.movies.append(text)
-            self.movies_list.addItem(QListWidgetItem(text))
+            movie = Movie(title=text)
+            self.movies.append(movie)
+            self.movies_list.addItem(QListWidgetItem(str(movie)))
             save_data(MOVIES_FILE, self.movies)
 
     def deleteSelectedItem(self, list_widget, filename, data_list):
@@ -263,10 +278,44 @@ class MainWindow(QWidget):
             text = item.text()
             row = list_widget.currentRow()
             list_widget.takeItem(row)
-            if text in data_list:
-                data_list.remove(text)
-                save_data(filename, data_list)
+            for i, obj in enumerate(data_list):
+                if str(obj) == text:
+                    del data_list[i]
+                    break
+            save_data(filename, data_list)
 
+    def managersTab(self):
+        self.managers_list = QListWidget()
+        self.managers_list.addItems([str(m) for m in self.managers])
+
+        button_add_manager = QPushButton("Додати менеджера")
+        button_add_manager.clicked.connect(self.openEditManagerWindow)
+
+        button_delete_manager = QPushButton("Видалити менеджера")
+        button_delete_manager.clicked.connect(self.deleteSelectedManager)
+
+        layout = QVBoxLayout()
+        layout.addWidget(self.managers_list)
+        layout.addWidget(button_add_manager)
+        layout.addWidget(button_delete_manager)
+        self.managers_tab.setLayout(layout)
+
+    def openEditManagerWindow(self):
+        self.edit_manager_window = EditManager()
+        if self.edit_manager_window.exec():
+            new_manager = self.edit_manager_window.getManagerData()
+            self.managers.append(new_manager)
+            self.managers_list.addItem(QListWidgetItem(str(new_manager)))
+            save_data(MANAGER_FILE, self.managers)
+
+    def deleteSelectedManager(self):
+        item = self.managers_list.currentItem()
+        if item:
+            row = self.managers_list.currentRow()
+            self.managers_list.takeItem(row)
+            if 0 <= row < len(self.managers):
+                del self.managers[row]
+                save_data(MANAGER_FILE, self.managers)
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)

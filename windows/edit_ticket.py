@@ -11,6 +11,8 @@ class EditTicket(QWidget):
 
     def __init__(self):
         super().__init__()
+        with open("styles.css", "r") as styleFile:
+            self.setStyleSheet(styleFile.read())
         self.initializeUI()
 
     def initializeUI(self):

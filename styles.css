@@ -1,33 +1,178 @@
+/* Загальні стилі для всього застосунку */
 QWidget {
-  background-color: aquamarine;
+  background-color: #f0f0f0; /* Світло-сірий фон */
+  font-family: "Arial", sans-serif;
+  font-size: 14px;
+  color: #333; /* Темно-сірий колір тексту */
 }
 
-QLineEdit {
-  background-color: #ffffff;
-  color: #4b0082;
-  border: 2px solid #333;
-  border-radius: 5px;
-  padding: 5px;
+/* Стилі для заголовків */
+QLabel[font-size="18"] {
+  font-size: 18px;
+  font-weight: bold;
+  color: #555;
+  margin-bottom: 10px;
 }
 
-QComboBox {
-  background-color: #ffffff;
-  color: #4b0082;
-}
-
-QDateEdit {
-  background-color: #ffffff;
-  color: #4b0082;
-}
-
+/* Стилі для кнопок */
 QPushButton {
-  color: #ffffff;
-  background-color: #0000ff;
+  background-color: #007bff; /* Синій фон кнопки */
+  color: white;
+  border: none;
+  padding: 10px 20px;
   border-radius: 5px;
-  padding: 5px 10px;
+  font-size: 16px;
 }
 
+QPushButton:hover {
+  background-color: #0056b3; /* Темно-синій фон при наведенні */
+}
+
+QPushButton:pressed {
+  background-color: #003d80; /* Ще темніший синій при натисканні */
+}
+
+/* Стилі для полів введення тексту (QLineEdit) */
+QLineEdit {
+  background-color: white;
+  border: 1px solid #ccc;
+  padding: 8px;
+  border-radius: 3px;
+  font-size: 14px;
+}
+
+QLineEdit:focus {
+  border-color: #007bff; /* Синя обводка при фокусі */
+  outline: none;
+}
+
+QLineEdit::placeholder {
+  color: #aaa; /* Сірий колір placeholder */
+}
+
+/* Стилі для випадаючих списків (QComboBox) */
+QComboBox {
+  background-color: white;
+  border: 1px solid #ccc;
+  padding: 8px;
+  border-radius: 3px;
+  font-size: 14px;
+}
+
+QComboBox::drop-down {
+  border: 0px;
+}
+
+QComboBox::down-arrow {
+  /* Замініть на шлях до вашої іконки */
+  width: 12px;
+  height: 12px;
+  margin-right: 5px;
+}
+
+QComboBox QAbstractItemView {
+  border: 1px solid #ccc;
+  background-color: white;
+  background-color: #007bff;
+}
+
+/* Стилі для текстових областей (QTextEdit) */
 QTextEdit {
-  background-color: #ffffff;
-  color: #4b0082;
+  background-color: white;
+  border: 1px solid #ccc;
+  padding: 8px;
+  border-radius: 3px;
+  font-size: 14px;
+}
+
+QTextEdit:focus {
+  border-color: #007bff;
+  outline: none;
+}
+
+/* Стилі для списків (QListWidget) */
+QListWidget {
+  background-color: white;
+  border: 1px solid #ccc;
+  padding: 5px;
+  border-radius: 3px;
+  font-size: 14px;
+}
+
+QListWidget::item:selected {
+  background-color: #007bff;
+  color: white;
+}
+
+QListWidget::item:hover {
+  background-color: #e0e0e0; /* Світло-сірий фон при наведенні на елемент */
+}
+
+/* Стилі для вкладок (QTabWidget) */
+QTabWidget::pane {
+  /* Контейнер для вмісту вкладок */
+  border: 1px solid #ccc;
+  background-color: white;
+  margin: 0;
+  padding: 10px;
+}
+
+QTabBar::tab {
+  background-color: #f0f0f0;
+  color: #333;
+  border: 1px solid #ccc;
+  border-bottom: none; /* Щоб з'єднати вкладку з панеллю вмісту */
+  padding: 8px 15px;
+  border-top-left-radius: 5px;
+  border-top-right-radius: 5px;
+  margin-right: 2px;
+}
+
+QTabBar::tab:selected {
+  background-color: white;
+  font-weight: bold;
+}
+
+QTabBar::tab:hover {
+  background-color: #e0e0e0;
+}
+
+/* Стилі для макетів (QHBoxLayout, QVBoxLayout, QFormLayout) */
+QHBoxLayout,
+QVBoxLayout,
+QFormLayout {
+  margin: 10px; /* Відступи навколо макету */
+}
+
+QFormLayout > QLabel {
+  font-weight: bold;
+  padding-right: 10px;
+}
+
+/* Стилі для QLabel, що відображає зображення */
+QLabel[pixmap] {
+  margin-bottom: 20px;
+}
+
+/* Стилі для віджетів у діалогових вікнах (наприклад, UserTypeWindow) */
+QWidget[windowTitle] {
+  background-color: #e6f7ff; /* Світло-блакитний фон для вікон */
+  border: 1px solid #aaddff;
+}
+
+UserTypeWindow QLabel {
+  font-size: 16px;
+  color: #444;
+  margin-bottom: 15px;
+}
+
+/* Додаткові стилі для повідомлень (QMessageBox) - можуть залежати від ОС */
+QMessageBox QLabel {
+  font-size: 14px;
+  color: #333;
+}
+
+QMessageBox QPushButton {
+  min-width: 80px;
+  margin-left: 5px;
 }
